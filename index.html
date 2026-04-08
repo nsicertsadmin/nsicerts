@@ -55,7 +55,7 @@ nav {
 .nav-logo-text { display: flex; flex-direction: column; line-height: 1.1; }
 .nav-logo-name { font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 2px; color: var(--white); }
 .nav-logo-url { font-size: 10px; color: var(--muted); letter-spacing: 1px; font-family: 'DM Mono', monospace; }
-.nav-links { display: flex; align-items: center; gap: 32px; }
+.nav-links { display: flex; align-items: center; gap: 28px; }
 .nav-links a { color: var(--muted); text-decoration: none; font-size: 14px; font-weight: 500; transition: color .2s; }
 .nav-links a:hover { color: var(--white); }
 .nav-cta {
@@ -65,6 +65,15 @@ nav {
   transition: background .2s, transform .1s;
 }
 .nav-cta:hover { background: var(--gold2); transform: translateY(-1px); }
+.nav-login {
+  background: transparent; color: var(--white);
+  padding: 8px 16px; border-radius: 6px;
+  font-size: 14px; font-weight: 600; text-decoration: none;
+  border: 1px solid rgba(255,255,255,0.2);
+  transition: all .2s;
+  white-space: nowrap;
+}
+.nav-login:hover { border-color: var(--gold); color: var(--gold); }
 .nav-lang {
   display: flex; align-items: center; gap: 6px;
   font-size: 13px; color: var(--muted); cursor: pointer;
@@ -463,8 +472,6 @@ footer {
   .footer-top { grid-template-columns: 1fr; }
   .pricing-grid { grid-template-columns: 1fr; }
 }
-  .nav-login { background:transparent; color:var(--white); padding:8px 16px; border-radius:6px; font-size:14px; font-weight:600; text-decoration:none; border:1px solid rgba(255,255,255,0.2); transition:all .2s; white-space:nowrap; }
-.nav-login:hover { border-color:var(--gold); color:var(--gold); }
 </style>
 </head>
 <body>
@@ -488,10 +495,7 @@ footer {
       <span id="lang-text">EN</span>
     </div>
   </div>
-  <div style="display:flex;align-items:center;gap:10px;">
-  <a href="https://course.nsicerts.org/login" class="nav-login">Student Login →</a>
-  <a href="https://course.nsicerts.org/signup" class="nav-cta">Get Certified →</a>
-</div>
+  <a href="https://course.nsicerts.org/login" class="nav-cta">Student Login →</a>
 </nav>
 
 <!-- HERO -->
@@ -506,7 +510,7 @@ footer {
     <h1>GET<br>CERTIFIED.<br><span>STAY SAFE.</span></h1>
     <p>OSHA-compliant safety certifications online. Complete your course, pass the quiz, and download your certificate instantly. Valid in all 50 states and Canada.</p>
     <div class="hero-actions">
-      <a href="#courses" class="btn-primary">Browse Courses →</a>
+      <a href="https://course.nsicerts.org/signup" class="btn-primary">Browse Courses →</a>
       <a href="#verify" class="btn-secondary">🔍 Verify a Certificate</a>
     </div>
     <div class="hero-trust">
@@ -569,7 +573,7 @@ footer {
 
   <div class="courses-grid">
 
-    <a href="#" class="course-card featured">
+    <a href="https://course.nsicerts.org/signup" class="course-card featured">
       <div class="course-badge badge-hot">⚡ Most Popular</div>
       <div class="course-icon">🏗️</div>
       <div class="course-title">MEWP Operator Certification</div>
@@ -592,7 +596,7 @@ footer {
       </div>
     </a>
 
-    <a href="#" class="course-card">
+    <a href="https://course.nsicerts.org/signup" class="course-card">
       <div class="course-badge badge-available">● Available</div>
       <div class="course-icon">🚜</div>
       <div class="course-title">Forklift Operator Certification</div>
@@ -615,7 +619,7 @@ footer {
       </div>
     </a>
 
-    <a href="#" class="course-card">
+    <a href="https://course.nsicerts.org/signup" class="course-card">
       <div class="course-badge badge-available">● Available</div>
       <div class="course-icon">🦺</div>
       <div class="course-title">Fall Protection Training</div>
@@ -638,7 +642,7 @@ footer {
       </div>
     </a>
 
-    <a href="#" class="course-card">
+    <a href="https://course.nsicerts.org/signup" class="course-card">
       <div class="course-badge badge-available">● Available</div>
       <div class="course-icon">⚗️</div>
       <div class="course-title">Hazard Communication (HazCom)</div>
@@ -817,7 +821,7 @@ footer {
         <li><span class="check">✓</span> English or Spanish</li>
         <li><span class="check">✓</span> Valid 3 years</li>
       </ul>
-      <a href="#courses" class="pricing-btn pricing-btn-secondary">Get Certified</a>
+      <a href="https://course.nsicerts.org/signup" class="pricing-btn pricing-btn-secondary">Get Certified</a>
     </div>
 
     <div class="pricing-card featured">
@@ -833,7 +837,7 @@ footer {
         <li><span class="check">✓</span> English + Spanish included</li>
         <li><span class="check">✓</span> Email support</li>
       </ul>
-      <a href="mailto:admin@nsicerts.org" class="pricing-btn pricing-btn-primary">Order Team Pack</a>
+      <a href="mailto:NSIcertsadmin@gmail.com" class="pricing-btn pricing-btn-primary">Order Team Pack</a>
     </div>
 
     <div class="pricing-card">
@@ -849,7 +853,7 @@ footer {
         <li><span class="check">✓</span> Priority support</li>
         <li><span class="check">✓</span> Custom branding option</li>
       </ul>
-      <a href="mailto:admin@nsicerts.org" class="pricing-btn pricing-btn-secondary">Contact Us</a>
+      <a href="mailto:NSIcertsadmin@gmail.com" class="pricing-btn pricing-btn-secondary">Contact Us</a>
     </div>
 
   </div>
@@ -861,10 +865,10 @@ footer {
     <div>
       <div class="section-label">Verification</div>
       <div class="verify-title">Verify Any NSI Certificate</div>
-      <div class="verify-desc">Employers — confirm a worker's certification is valid and current. Enter the certificate number found on the bottom of any NSI certificate.</div>
+      <div class="verify-desc">Employers — confirm a worker's certification is valid and current. Enter the certificate number found on any NSI certificate, or scan the QR code.</div>
       <div class="verify-input-row">
-        <input class="verify-input" type="text" placeholder="NSI-MEWP-000001" id="cert-input">
-        <button class="btn-verify" onclick="verifyCert()">Verify</button>
+        <input class="verify-input" type="text" placeholder="NSI-2026-123456" id="cert-input">
+        <button class="btn-verify" onclick="verifyCert()">Verify →</button>
       </div>
       <div id="verify-result" style="margin-top:16px;"></div>
     </div>
@@ -947,20 +951,20 @@ footer {
     </div>
     <div class="footer-col">
       <h4>Courses</h4>
-      <a href="#">MEWP Operator</a>
-      <a href="#">Forklift Operator</a>
-      <a href="#">Fall Protection</a>
-      <a href="#">HazCom / GHS</a>
+      <a href="https://course.nsicerts.org/signup">MEWP Operator</a>
+      <a href="https://course.nsicerts.org/signup">Forklift Operator</a>
+      <a href="https://course.nsicerts.org/signup">Fall Protection</a>
+      <a href="https://course.nsicerts.org/signup">HazCom / GHS</a>
       <a href="#">Lockout/Tagout</a>
       <a href="#">H2S Safety</a>
     </div>
     <div class="footer-col">
-      <h4>Company</h4>
-      <a href="#">About NSI</a>
-      <a href="#">Standards &amp; Compliance</a>
+      <h4>Account</h4>
+      <a href="https://course.nsicerts.org/login">Student Login</a>
+      <a href="https://course.nsicerts.org/signup">Create Account</a>
       <a href="#verify">Verify Certificate</a>
       <a href="#pricing">Bulk &amp; Corporate</a>
-      <a href="mailto:admin@nsicerts.org">Contact Us</a>
+      <a href="mailto:NSIcertsadmin@gmail.com">Contact Us</a>
     </div>
     <div class="footer-col">
       <h4>Languages</h4>
@@ -1006,8 +1010,14 @@ function verifyCert() {
     result.innerHTML = '<div style="color:#8B96A8;font-size:13px;">Please enter a certificate number.</div>';
     return;
   }
-  result.innerHTML = '<div style="color:#8B96A8;font-size:13px;">Certificate verification will be available once the platform is live.</div>';
+  // Redirect to real verification page
+  window.location.href = 'https://course.nsicerts.org/verify/' + encodeURIComponent(val);
 }
+
+// Allow Enter key in verify input
+document.getElementById('cert-input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') verifyCert();
+});
 
 // Smooth scroll for nav links
 document.querySelectorAll('a[href^="#"]').forEach(a => {
