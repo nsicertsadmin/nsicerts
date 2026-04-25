@@ -7,6 +7,7 @@
 <meta name="description" content="Get OSHA-compliant safety certifications online. MEWP, Forklift, Fall Protection, HazCom and more. Instant PDF certificate. Valid in all 50 states. English & Spanish.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root {
   --navy:   #0B1629;
@@ -22,219 +23,143 @@
   --card:   rgba(255,255,255,0.04);
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
 html { scroll-behavior: smooth; }
-
-body {
-  font-family: 'DM Sans', sans-serif;
-  background: var(--navy);
-  color: var(--white);
-  overflow-x: hidden;
-}
+body { font-family: 'DM Sans', sans-serif; background: var(--navy); color: var(--white); overflow-x: hidden; }
 
 /* ── NAV ── */
 nav {
   position: fixed; top: 0; left: 0; right: 0; z-index: 100;
   display: flex; align-items: center; justify-content: space-between;
-  padding: 0 5%;
-  height: 68px;
-  background: rgba(11,22,41,0.92);
-  backdrop-filter: blur(12px);
+  padding: 0 5%; height: 68px;
+  background: rgba(11,22,41,0.92); backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border);
 }
-.nav-logo {
-  display: flex; align-items: center; gap: 10px; text-decoration: none;
-}
-.nav-logo-badge {
-  width: 36px; height: 36px; border-radius: 8px;
-  background: var(--gold);
-  display: flex; align-items: center; justify-content: center;
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 18px; color: var(--navy); letter-spacing: 0;
-}
+.nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.nav-logo-badge { width: 36px; height: 36px; border-radius: 8px; background: var(--gold); display: flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', sans-serif; font-size: 18px; color: var(--navy); }
 .nav-logo-text { display: flex; flex-direction: column; line-height: 1.1; }
 .nav-logo-name { font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 2px; color: var(--white); }
 .nav-logo-url { font-size: 10px; color: var(--muted); letter-spacing: 1px; font-family: 'DM Mono', monospace; }
 .nav-links { display: flex; align-items: center; gap: 28px; }
 .nav-links a { color: var(--muted); text-decoration: none; font-size: 14px; font-weight: 500; transition: color .2s; }
 .nav-links a:hover { color: var(--white); }
-.nav-cta {
-  background: var(--gold); color: var(--navy);
-  padding: 9px 20px; border-radius: 6px;
-  font-size: 14px; font-weight: 600; text-decoration: none;
-  transition: background .2s, transform .1s;
-}
+.nav-right { display: flex; align-items: center; gap: 10px; }
+.nav-cta { background: var(--gold); color: var(--navy); padding: 9px 20px; border-radius: 6px; font-size: 14px; font-weight: 600; text-decoration: none; transition: background .2s, transform .1s; }
 .nav-cta:hover { background: var(--gold2); transform: translateY(-1px); }
-.nav-login {
-  background: transparent; color: var(--white);
-  padding: 8px 16px; border-radius: 6px;
-  font-size: 14px; font-weight: 600; text-decoration: none;
-  border: 1px solid rgba(255,255,255,0.2);
-  transition: all .2s;
-  white-space: nowrap;
-}
+.nav-login { background: transparent; color: var(--white); padding: 8px 16px; border-radius: 6px; font-size: 14px; font-weight: 600; text-decoration: none; border: 1px solid rgba(255,255,255,0.2); transition: all .2s; white-space: nowrap; }
 .nav-login:hover { border-color: var(--gold); color: var(--gold); }
-.nav-lang {
-  display: flex; align-items: center; gap: 6px;
-  font-size: 13px; color: var(--muted); cursor: pointer;
-  background: var(--card); border: 1px solid var(--border);
-  padding: 6px 12px; border-radius: 6px;
+.nav-user { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--white); }
+.nav-user-name { color: var(--gold); font-weight: 600; }
+.nav-dashboard { background: var(--gold); color: var(--navy); padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 700; text-decoration: none; }
+
+/* Cart button in nav */
+.nav-cart-btn {
+  position: relative; background: transparent; border: 1px solid rgba(255,255,255,0.2);
+  color: var(--white); padding: 8px 14px; border-radius: 6px; cursor: pointer;
+  font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 6px;
+  transition: all .2s;
 }
-.nav-lang:hover { color: var(--white); border-color: rgba(255,255,255,0.2); }
+.nav-cart-btn:hover { border-color: var(--gold); color: var(--gold); }
+.cart-badge {
+  position: absolute; top: -6px; right: -6px;
+  background: var(--gold); color: var(--navy);
+  border-radius: 50%; width: 18px; height: 18px;
+  font-size: 10px; font-weight: 800; display: flex; align-items: center; justify-content: center;
+}
+
+/* ── SLIDE-OUT CART DRAWER ── */
+.cart-overlay {
+  position: fixed; top: 68px; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.4); z-index: 200;
+  opacity: 0; pointer-events: none; transition: opacity .3s;
+}
+.cart-overlay.open { opacity: 1; pointer-events: all; }
+.cart-drawer {
+  position: fixed; top: 68px; right: -360px; width: 320px;
+  height: calc(100vh - 68px);
+  background: #111E35; z-index: 201; transition: right .3s ease;
+  display: flex; flex-direction: column; box-shadow: -8px 0 32px rgba(0,0,0,0.4);
+  border-left: 1px solid var(--border);
+}
+.cart-drawer.open { right: 0; }
+.cart-drawer-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border);
+}
+.cart-drawer-header h3 { font-size: 1.1rem; font-weight: 700; color: var(--white); }
+.cart-close { background: none; border: none; color: var(--muted); font-size: 1.5rem; cursor: pointer; line-height: 1; }
+.cart-close:hover { color: var(--white); }
+.cart-items { flex: 1; overflow-y: auto; padding: 1.25rem 1.5rem; }
+.cart-empty { text-align: center; padding: 3rem 1rem; color: var(--muted); }
+.cart-empty-icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
+.cart-item {
+  display: flex; align-items: center; gap: 0.75rem;
+  padding: 0.875rem 0; border-bottom: 1px solid var(--border);
+}
+.cart-item-icon { font-size: 1.5rem; width: 40px; height: 40px; background: rgba(255,255,255,0.05); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.cart-item-info { flex: 1; }
+.cart-item-name { font-size: 0.85rem; font-weight: 600; color: var(--white); margin-bottom: 2px; }
+.cart-item-price { font-size: 0.8rem; color: var(--gold); font-weight: 700; }
+.cart-item-remove { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 1.1rem; padding: 4px; }
+.cart-item-remove:hover { color: var(--red); }
+.cart-footer { padding: 1.25rem 1.5rem; border-top: 1px solid var(--border); }
+.cart-total { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+.cart-total-label { font-size: 0.9rem; color: var(--muted); }
+.cart-total-amount { font-size: 1.3rem; font-weight: 800; color: var(--white); }
+.cart-checkout-btn {
+  display: block; width: 100%; padding: 14px; background: var(--gold); color: var(--navy);
+  border: none; border-radius: 8px; font-size: 1rem; font-weight: 800; cursor: pointer;
+  text-align: center; text-decoration: none; transition: background .2s;
+}
+.cart-checkout-btn:hover { background: var(--gold2); }
+.cart-note { font-size: 0.72rem; color: var(--muted); text-align: center; margin-top: 0.75rem; }
 
 /* ── HERO ── */
-.hero {
-  min-height: 100vh;
-  display: flex; align-items: center;
-  padding: 100px 5% 60px;
-  position: relative;
-  overflow: hidden;
-}
-.hero-bg {
-  position: absolute; inset: 0; z-index: 0;
-  background:
-    radial-gradient(ellipse 80% 60% at 60% 40%, rgba(245,166,35,0.08) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 80% at 10% 80%, rgba(34,197,94,0.05) 0%, transparent 50%);
-}
-.hero-grid {
-  position: absolute; inset: 0; z-index: 0;
-  background-image:
-    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-  background-size: 60px 60px;
-  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%);
-}
+.hero { min-height: 100vh; display: flex; align-items: center; padding: 100px 5% 60px; position: relative; overflow: hidden; }
+.hero-bg { position: absolute; inset: 0; z-index: 0; background: radial-gradient(ellipse 80% 60% at 60% 40%, rgba(245,166,35,0.08) 0%, transparent 60%), radial-gradient(ellipse 60% 80% at 10% 80%, rgba(34,197,94,0.05) 0%, transparent 50%); }
+.hero-grid { position: absolute; inset: 0; z-index: 0; background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 60px 60px; mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%); }
 .hero-content { position: relative; z-index: 1; max-width: 680px; }
-.hero-eyebrow {
-  display: inline-flex; align-items: center; gap: 8px;
-  background: rgba(245,166,35,0.12); border: 1px solid rgba(245,166,35,0.3);
-  padding: 6px 14px; border-radius: 100px;
-  font-size: 12px; font-weight: 600; letter-spacing: 1.5px;
-  text-transform: uppercase; color: var(--gold);
-  margin-bottom: 24px;
-}
+.hero-eyebrow { display: inline-flex; align-items: center; gap: 8px; background: rgba(245,166,35,0.12); border: 1px solid rgba(245,166,35,0.3); padding: 6px 14px; border-radius: 100px; font-size: 12px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--gold); margin-bottom: 24px; }
 .hero-eyebrow-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); animation: pulse 2s infinite; }
 @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.3)} }
-
-.hero h1 {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: clamp(52px, 8vw, 88px);
-  line-height: 0.95;
-  letter-spacing: 1px;
-  margin-bottom: 24px;
-}
+.hero h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(52px, 8vw, 88px); line-height: 0.95; letter-spacing: 1px; margin-bottom: 24px; }
 .hero h1 span { color: var(--gold); }
-.hero p {
-  font-size: 18px; line-height: 1.7; color: rgba(248,249,252,0.7);
-  max-width: 540px; margin-bottom: 40px; font-weight: 300;
-}
+.hero p { font-size: 18px; line-height: 1.7; color: rgba(248,249,252,0.7); max-width: 540px; margin-bottom: 40px; font-weight: 300; }
 .hero-actions { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 56px; }
-.btn-primary {
-  background: var(--gold); color: var(--navy);
-  padding: 14px 32px; border-radius: 8px;
-  font-size: 15px; font-weight: 700; text-decoration: none;
-  transition: all .2s; display: inline-flex; align-items: center; gap: 8px;
-  letter-spacing: 0.3px;
-}
+.btn-primary { background: var(--gold); color: var(--navy); padding: 14px 32px; border-radius: 8px; font-size: 15px; font-weight: 700; text-decoration: none; transition: all .2s; display: inline-flex; align-items: center; gap: 8px; }
 .btn-primary:hover { background: var(--gold2); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(245,166,35,0.3); }
-.btn-secondary {
-  background: transparent; color: var(--white);
-  padding: 14px 28px; border-radius: 8px;
-  font-size: 15px; font-weight: 500; text-decoration: none;
-  border: 1px solid var(--border); transition: all .2s;
-  display: inline-flex; align-items: center; gap: 8px;
-}
+.btn-secondary { background: transparent; color: var(--white); padding: 14px 28px; border-radius: 8px; font-size: 15px; font-weight: 500; text-decoration: none; border: 1px solid var(--border); transition: all .2s; display: inline-flex; align-items: center; gap: 8px; }
 .btn-secondary:hover { border-color: rgba(255,255,255,0.3); background: var(--card); }
-
 .hero-trust { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
 .trust-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
 .trust-icon { color: var(--green); font-size: 15px; }
-
-.hero-badges {
-  position: absolute; right: 5%; top: 50%; transform: translateY(-50%);
-  z-index: 1; display: flex; flex-direction: column; gap: 12px;
-}
-.std-badge {
-  background: var(--card); border: 1px solid var(--border);
-  border-radius: 10px; padding: 14px 18px;
-  display: flex; align-items: center; gap: 10px;
-  backdrop-filter: blur(8px); min-width: 180px;
-  transition: border-color .2s;
-}
+.hero-badges { position: absolute; right: 5%; top: 50%; transform: translateY(-50%); z-index: 1; display: flex; flex-direction: column; gap: 12px; }
+.std-badge { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 18px; display: flex; align-items: center; gap: 10px; backdrop-filter: blur(8px); min-width: 180px; transition: border-color .2s; }
 .std-badge:hover { border-color: rgba(245,166,35,0.4); }
-.std-badge-icon {
-  width: 36px; height: 36px; border-radius: 8px;
-  display: flex; align-items: center; justify-content: center;
-  font-weight: 700; font-size: 12px; letter-spacing: 0.5px;
-  font-family: 'DM Mono', monospace;
-}
-.std-badge-text { display: flex; flex-direction: column; }
+.std-badge-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; font-family: 'DM Mono', monospace; }
 .std-badge-name { font-size: 13px; font-weight: 600; color: var(--white); }
 .std-badge-desc { font-size: 11px; color: var(--muted); margin-top: 1px; }
 .badge-osha .std-badge-icon { background: rgba(239,68,68,0.15); color: #EF4444; }
 .badge-ansi .std-badge-icon { background: rgba(245,166,35,0.15); color: var(--gold); }
-.badge-csa  .std-badge-icon { background: rgba(34,197,94,0.15);  color: var(--green); }
+.badge-csa  .std-badge-icon { background: rgba(34,197,94,0.15); color: var(--green); }
 
 /* ── STATS BAR ── */
-.stats-bar {
-  background: var(--navy2);
-  border-top: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
-  padding: 32px 5%;
-  display: grid; grid-template-columns: repeat(4, 1fr);
-  gap: 24px;
-}
+.stats-bar { background: var(--navy2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 32px 5%; display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
 .stat-item { text-align: center; }
-.stat-num {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 42px; color: var(--gold); line-height: 1;
-  margin-bottom: 4px;
-}
-.stat-label { font-size: 13px; color: var(--muted); font-weight: 400; }
+.stat-num { font-family: 'Bebas Neue', sans-serif; font-size: 42px; color: var(--gold); line-height: 1; margin-bottom: 4px; }
+.stat-label { font-size: 13px; color: var(--muted); }
 
 /* ── COURSES ── */
 .section { padding: 100px 5%; }
-.section-label {
-  font-size: 12px; font-weight: 600; letter-spacing: 2px;
-  text-transform: uppercase; color: var(--gold);
-  margin-bottom: 12px;
-}
-.section-title {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: clamp(36px, 5vw, 52px);
-  letter-spacing: 1px; margin-bottom: 16px;
-}
-.section-sub {
-  font-size: 17px; color: rgba(248,249,252,0.6);
-  max-width: 560px; line-height: 1.7; margin-bottom: 56px;
-  font-weight: 300;
-}
-.courses-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
-}
-.course-card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 14px; padding: 28px;
-  transition: all .25s; position: relative; overflow: hidden;
-  text-decoration: none; color: inherit; display: block;
-}
-.course-card::before {
-  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-  background: var(--gold); transform: scaleX(0); transform-origin: left;
-  transition: transform .3s;
-}
+.section-label { font-size: 12px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--gold); margin-bottom: 12px; }
+.section-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(36px, 5vw, 52px); letter-spacing: 1px; margin-bottom: 16px; }
+.section-sub { font-size: 17px; color: rgba(248,249,252,0.6); max-width: 560px; line-height: 1.7; margin-bottom: 56px; font-weight: 300; }
+.courses-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+.course-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 28px; transition: all .25s; position: relative; overflow: hidden; color: inherit; display: block; }
+.course-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--gold); transform: scaleX(0); transform-origin: left; transition: transform .3s; }
 .course-card:hover { border-color: rgba(245,166,35,0.3); transform: translateY(-3px); background: rgba(255,255,255,0.06); }
 .course-card:hover::before { transform: scaleX(1); }
 .course-card.featured { border-color: rgba(245,166,35,0.4); background: rgba(245,166,35,0.06); }
-.course-badge {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 4px 10px; border-radius: 100px;
-  font-size: 11px; font-weight: 600; letter-spacing: 0.5px;
-  margin-bottom: 16px;
-}
+.course-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 100px; font-size: 11px; font-weight: 600; margin-bottom: 16px; }
 .badge-available { background: rgba(34,197,94,0.15); color: var(--green); border: 1px solid rgba(34,197,94,0.3); }
 .badge-soon { background: rgba(139,150,168,0.12); color: var(--muted); border: 1px solid var(--border); }
 .badge-hot { background: rgba(245,166,35,0.15); color: var(--gold); border: 1px solid rgba(245,166,35,0.3); }
@@ -244,77 +169,34 @@ nav {
 .course-meta { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
 .course-meta-item { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--muted); }
 .course-langs { display: flex; gap: 6px; margin-bottom: 20px; }
-.lang-tag {
-  padding: 3px 9px; border-radius: 4px;
-  font-size: 11px; font-weight: 600;
-  background: rgba(255,255,255,0.06); color: var(--muted);
-  border: 1px solid var(--border);
-  font-family: 'DM Mono', monospace;
-}
+.lang-tag { padding: 3px 9px; border-radius: 4px; font-size: 11px; font-weight: 600; background: rgba(255,255,255,0.06); color: var(--muted); border: 1px solid var(--border); font-family: 'DM Mono', monospace; }
 .lang-tag.active { background: rgba(245,166,35,0.12); color: var(--gold); border-color: rgba(245,166,35,0.3); }
 .course-footer { display: flex; align-items: center; justify-content: space-between; padding-top: 20px; border-top: 1px solid var(--border); }
-.course-price { font-family: 'Bebas Neue', sans-serif; font-size: 28px; color: var(--gold); letter-spacing: 0.5px; }
-.course-price-sub { font-size: 11px; color: var(--muted); font-family: 'DM Sans', sans-serif; font-weight: 400; margin-top: -4px; }
-.btn-enroll {
-  background: var(--gold); color: var(--navy);
-  padding: 9px 20px; border-radius: 6px;
-  font-size: 13px; font-weight: 700; text-decoration: none;
-  transition: all .2s;
-}
-.btn-enroll:hover { background: var(--gold2); transform: translateY(-1px); }
-.btn-notify {
-  background: var(--card); color: var(--muted);
-  padding: 9px 20px; border-radius: 6px;
-  font-size: 13px; font-weight: 600; text-decoration: none;
-  border: 1px solid var(--border); transition: all .2s;
-}
-.btn-notify:hover { border-color: rgba(255,255,255,0.2); color: var(--white); }
+.course-price { font-family: 'Bebas Neue', sans-serif; font-size: 28px; color: var(--gold); }
+.course-price-sub { font-size: 11px; color: var(--muted); margin-top: -4px; }
+.btn-add-cart { background: var(--gold); color: var(--navy); padding: 9px 20px; border-radius: 6px; font-size: 13px; font-weight: 700; border: none; cursor: pointer; transition: all .2s; }
+.btn-add-cart:hover { background: var(--gold2); transform: translateY(-1px); }
+.btn-add-cart.in-cart { background: var(--green); color: white; }
+.btn-notify { background: var(--card); color: var(--muted); padding: 9px 20px; border-radius: 6px; font-size: 13px; font-weight: 600; border: 1px solid var(--border); cursor: default; }
 
 /* ── HOW IT WORKS ── */
 .how-section { background: var(--navy2); padding: 100px 5%; }
-.steps-grid {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 2px; margin-top: 56px;
-  background: var(--border); border-radius: 16px; overflow: hidden;
-}
-.step-card {
-  background: var(--navy2); padding: 36px 28px;
-  position: relative;
-}
-.step-num {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 64px; line-height: 1;
-  color: rgba(245,166,35,0.15);
-  position: absolute; top: 20px; right: 20px;
-}
-.step-icon {
-  font-size: 28px; margin-bottom: 16px;
-  width: 52px; height: 52px;
-  background: rgba(245,166,35,0.1);
-  border-radius: 12px; display: flex; align-items: center; justify-content: center;
-}
+.steps-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 2px; margin-top: 56px; background: var(--border); border-radius: 16px; overflow: hidden; }
+.step-card { background: var(--navy2); padding: 36px 28px; position: relative; }
+.step-num { font-family: 'Bebas Neue', sans-serif; font-size: 64px; line-height: 1; color: rgba(245,166,35,0.15); position: absolute; top: 20px; right: 20px; }
+.step-icon { font-size: 28px; margin-bottom: 16px; width: 52px; height: 52px; background: rgba(245,166,35,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; }
 .step-title { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
 .step-desc { font-size: 14px; color: rgba(248,249,252,0.6); line-height: 1.6; }
 
 /* ── COMPLIANCE ── */
 .compliance-section { padding: 100px 5%; }
-.compliance-grid {
-  display: grid; grid-template-columns: 1fr 1fr;
-  gap: 24px; margin-top: 56px;
-}
-.compliance-card {
-  background: var(--card); border: 1px solid var(--border);
-  border-radius: 14px; padding: 32px;
-}
+.compliance-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 56px; }
+.compliance-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 32px; }
 .compliance-header { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
-.compliance-logo {
-  width: 52px; height: 52px; border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-  font-family: 'DM Mono', monospace; font-weight: 700; font-size: 14px;
-}
+.compliance-logo { width: 52px; height: 52px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-family: 'DM Mono', monospace; font-weight: 700; font-size: 14px; }
 .comp-osha { background: rgba(239,68,68,0.15); color: #EF4444; }
 .comp-ansi { background: rgba(245,166,35,0.15); color: var(--gold); }
-.comp-csa  { background: rgba(34,197,94,0.15);  color: var(--green); }
+.comp-csa  { background: rgba(34,197,94,0.15); color: var(--green); }
 .comp-iso  { background: rgba(139,92,246,0.15); color: #A78BFA; }
 .compliance-name { font-size: 18px; font-weight: 700; }
 .compliance-full { font-size: 12px; color: var(--muted); margin-top: 2px; }
@@ -322,79 +204,44 @@ nav {
 
 /* ── PRICING ── */
 .pricing-section { background: var(--navy2); padding: 100px 5%; }
-.pricing-grid {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 20px; margin-top: 56px; align-items: start;
-}
-.pricing-card {
-  background: var(--card); border: 1px solid var(--border);
-  border-radius: 16px; padding: 32px; position: relative;
-}
-.pricing-card.featured {
-  border-color: var(--gold); background: rgba(245,166,35,0.06);
-}
-.pricing-popular {
-  position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
-  background: var(--gold); color: var(--navy);
-  padding: 4px 16px; border-radius: 100px;
-  font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
-  white-space: nowrap;
-}
+.pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; margin-top: 56px; align-items: start; }
+.pricing-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 32px; position: relative; }
+.pricing-card.featured { border-color: var(--gold); background: rgba(245,166,35,0.06); }
+.pricing-popular { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--gold); color: var(--navy); padding: 4px 16px; border-radius: 100px; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; white-space: nowrap; }
 .pricing-tier { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; }
-.pricing-price {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 52px; color: var(--white); line-height: 1;
-  margin-bottom: 4px;
-}
+.pricing-price { font-family: 'Bebas Neue', sans-serif; font-size: 52px; color: var(--white); line-height: 1; margin-bottom: 4px; }
 .pricing-price span { font-size: 24px; vertical-align: top; margin-top: 10px; display: inline-block; }
 .pricing-per { font-size: 13px; color: var(--muted); margin-bottom: 24px; }
 .pricing-features { list-style: none; margin-bottom: 28px; display: flex; flex-direction: column; gap: 10px; }
 .pricing-features li { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; color: rgba(248,249,252,0.8); line-height: 1.4; }
 .check { color: var(--green); font-size: 15px; flex-shrink: 0; margin-top: 1px; }
-.pricing-btn {
-  display: block; text-align: center; text-decoration: none;
-  padding: 12px; border-radius: 8px; font-weight: 700; font-size: 14px;
-  transition: all .2s;
-}
+.pricing-btn { display: block; text-align: center; text-decoration: none; padding: 12px; border-radius: 8px; font-weight: 700; font-size: 14px; transition: all .2s; border: none; cursor: pointer; }
 .pricing-btn-primary { background: var(--gold); color: var(--navy); }
 .pricing-btn-primary:hover { background: var(--gold2); transform: translateY(-1px); }
-.pricing-btn-secondary { background: var(--card); color: var(--white); border: 1px solid var(--border); }
-.pricing-btn-secondary:hover { border-color: rgba(255,255,255,0.3); }
+.pricing-btn-secondary { background: var(--card); color: var(--white); border: 1px solid var(--border) !important; }
+.pricing-btn-secondary:hover { border-color: rgba(255,255,255,0.3) !important; }
+
+/* Bulk tiers table */
+.bulk-table { width: 100%; border-collapse: collapse; margin-top: 56px; }
+.bulk-table th { padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border); }
+.bulk-table td { padding: 14px 16px; font-size: 14px; border-bottom: 1px solid var(--border); color: rgba(248,249,252,0.8); }
+.bulk-table tr:hover td { background: rgba(255,255,255,0.02); }
+.bulk-savings { background: rgba(34,197,94,0.15); color: var(--green); padding: 3px 10px; border-radius: 100px; font-size: 12px; font-weight: 700; }
+.bulk-contact { background: var(--gold); color: var(--navy); padding: 6px 16px; border-radius: 6px; font-size: 13px; font-weight: 700; text-decoration: none; }
 
 /* ── VERIFY ── */
 .verify-section { padding: 100px 5%; }
-.verify-box {
-  background: var(--card); border: 1px solid var(--border);
-  border-radius: 20px; padding: 56px;
-  display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center;
-}
+.verify-box { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 56px; display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
 .verify-title { font-family: 'Bebas Neue', sans-serif; font-size: 40px; margin-bottom: 16px; }
 .verify-desc { font-size: 16px; color: rgba(248,249,252,0.65); line-height: 1.7; margin-bottom: 28px; }
 .verify-input-row { display: flex; gap: 10px; }
-.verify-input {
-  flex: 1; background: rgba(255,255,255,0.06);
-  border: 1px solid var(--border); border-radius: 8px;
-  padding: 12px 16px; font-size: 14px; color: var(--white);
-  font-family: 'DM Mono', monospace; outline: none;
-  transition: border-color .2s;
-}
+.verify-input { flex: 1; background: rgba(255,255,255,0.06); border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; font-size: 14px; color: var(--white); font-family: 'DM Mono', monospace; outline: none; transition: border-color .2s; }
 .verify-input:focus { border-color: rgba(245,166,35,0.5); }
 .verify-input::placeholder { color: var(--muted); }
-.btn-verify {
-  background: var(--gold); color: var(--navy);
-  padding: 12px 24px; border-radius: 8px;
-  font-size: 14px; font-weight: 700; border: none; cursor: pointer;
-  transition: background .2s; white-space: nowrap;
-}
+.btn-verify { background: var(--gold); color: var(--navy); padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 700; border: none; cursor: pointer; transition: background .2s; }
 .btn-verify:hover { background: var(--gold2); }
-.verify-visual {
-  background: var(--navy3); border: 1px solid var(--border);
-  border-radius: 14px; padding: 28px; text-align: center;
-}
-.cert-preview {
-  background: var(--navy2); border: 2px solid rgba(245,166,35,0.3);
-  border-radius: 10px; padding: 24px 20px; margin-bottom: 16px;
-}
+.verify-visual { background: var(--navy3); border: 1px solid var(--border); border-radius: 14px; padding: 28px; text-align: center; }
+.cert-preview { background: var(--navy2); border: 2px solid rgba(245,166,35,0.3); border-radius: 10px; padding: 24px 20px; margin-bottom: 16px; }
 .cert-preview-logo { font-family: 'Bebas Neue', sans-serif; font-size: 14px; letter-spacing: 3px; color: var(--gold); margin-bottom: 4px; }
 .cert-preview-title { font-size: 10px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 16px; }
 .cert-preview-name { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: var(--white); margin-bottom: 4px; }
@@ -403,44 +250,26 @@ nav {
 .cert-preview-badge { font-size: 9px; padding: 2px 8px; border-radius: 4px; font-family: 'DM Mono', monospace; font-weight: 600; }
 .cpb-osha { background: rgba(239,68,68,0.2); color: #EF4444; }
 .cpb-ansi { background: rgba(245,166,35,0.2); color: var(--gold); }
-.cpb-csa  { background: rgba(34,197,94,0.2);  color: var(--green); }
-.verify-status {
-  display: inline-flex; align-items: center; gap: 6px;
-  background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.3);
-  padding: 6px 14px; border-radius: 100px;
-  font-size: 12px; font-weight: 600; color: var(--green);
-}
+.cpb-csa  { background: rgba(34,197,94,0.2); color: var(--green); }
+.verify-status { display: inline-flex; align-items: center; gap: 6px; background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.3); padding: 6px 14px; border-radius: 100px; font-size: 12px; font-weight: 600; color: var(--green); }
 
 /* ── FAQ ── */
 .faq-section { background: var(--navy2); padding: 100px 5%; }
 .faq-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 56px; }
-.faq-item {
-  background: var(--card); border: 1px solid var(--border);
-  border-radius: 12px; padding: 24px; cursor: pointer;
-  transition: border-color .2s;
-}
+.faq-item { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; cursor: pointer; transition: border-color .2s; }
 .faq-item:hover { border-color: rgba(245,166,35,0.3); }
 .faq-q { font-size: 15px; font-weight: 600; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
 .faq-a { font-size: 14px; color: rgba(248,249,252,0.65); line-height: 1.7; }
 
 /* ── FOOTER ── */
-footer {
-  background: var(--navy); border-top: 1px solid var(--border);
-  padding: 60px 5% 32px;
-}
+footer { background: var(--navy); border-top: 1px solid var(--border); padding: 60px 5% 32px; }
 .footer-top { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 48px; margin-bottom: 48px; }
-.footer-brand { }
-.footer-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
 .footer-desc { font-size: 14px; color: var(--muted); line-height: 1.7; max-width: 280px; }
 .footer-compliance { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
-.footer-badge {
-  font-size: 10px; font-weight: 700; padding: 3px 9px;
-  border-radius: 4px; font-family: 'DM Mono', monospace;
-  letter-spacing: 0.5px;
-}
+.footer-badge { font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 4px; font-family: 'DM Mono', monospace; }
 .fb-osha { background: rgba(239,68,68,0.15); color: #EF4444; }
 .fb-ansi { background: rgba(245,166,35,0.15); color: var(--gold); }
-.fb-csa  { background: rgba(34,197,94,0.15);  color: var(--green); }
+.fb-csa  { background: rgba(34,197,94,0.15); color: var(--green); }
 .footer-col h4 { font-size: 13px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; }
 .footer-col a { display: block; font-size: 14px; color: rgba(248,249,252,0.6); text-decoration: none; margin-bottom: 10px; transition: color .2s; }
 .footer-col a:hover { color: var(--white); }
@@ -449,13 +278,7 @@ footer {
 .footer-legal { display: flex; gap: 24px; }
 .footer-legal a { font-size: 13px; color: var(--muted); text-decoration: none; }
 .footer-legal a:hover { color: var(--white); }
-
-/* ── DISCLAIMER ── */
-.disclaimer {
-  background: rgba(245,166,35,0.06); border-top: 1px solid rgba(245,166,35,0.15);
-  padding: 20px 5%;
-  font-size: 12px; color: rgba(248,249,252,0.45); line-height: 1.6; text-align: center;
-}
+.disclaimer { background: rgba(245,166,35,0.06); border-top: 1px solid rgba(245,166,35,0.15); padding: 20px 5%; font-size: 12px; color: rgba(248,249,252,0.45); line-height: 1.6; text-align: center; }
 
 /* ── RESPONSIVE ── */
 @media (max-width: 900px) {
@@ -466,6 +289,7 @@ footer {
   .faq-grid { grid-template-columns: 1fr; }
   .footer-top { grid-template-columns: 1fr 1fr; }
   .nav-links { display: none; }
+  .cart-drawer { width: 100%; right: -100%; top: 68px; height: calc(100vh - 68px); }
 }
 @media (max-width: 600px) {
   .stats-bar { grid-template-columns: repeat(2,1fr); }
@@ -475,6 +299,31 @@ footer {
 </style>
 </head>
 <body>
+
+<!-- CART OVERLAY + DRAWER -->
+<div class="cart-overlay" id="cartOverlay" onclick="closeCart()"></div>
+<div class="cart-drawer" id="cartDrawer">
+  <div class="cart-drawer-header">
+    <h3>🛒 Your Cart</h3>
+    <button class="cart-close" onclick="closeCart()">×</button>
+  </div>
+  <div class="cart-items" id="cartItems">
+    <div class="cart-empty">
+      <div class="cart-empty-icon">🛒</div>
+      <p style="color:var(--muted);font-size:0.9rem;">Your cart is empty.<br>Add a course to get started.</p>
+    </div>
+  </div>
+  <div class="cart-footer" id="cartFooter" style="display:none">
+    <div class="cart-total">
+      <span class="cart-total-label">Total</span>
+      <span class="cart-total-amount" id="cartTotal">$0</span>
+    </div>
+    <a href="#" class="cart-checkout-btn" id="cartCheckoutBtn" onclick="goToCheckout()">
+      Proceed to Checkout →
+    </a>
+    <p class="cart-note">🔒 Secure checkout · Create account or sign in at checkout</p>
+  </div>
+</div>
 
 <!-- NAV -->
 <nav>
@@ -490,12 +339,26 @@ footer {
     <a href="#how">How It Works</a>
     <a href="#pricing">Pricing</a>
     <a href="#verify">Verify Certificate</a>
-    <div class="nav-lang" onclick="toggleLang()">
+    <div class="nav-lang" onclick="toggleLang()" style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);cursor:pointer;background:var(--card);border:1px solid var(--border);padding:6px 12px;border-radius:6px;">
       <span id="lang-flag">🇺🇸</span>
       <span id="lang-text">EN</span>
     </div>
   </div>
-  <a href="https://course.nsicerts.org/login" class="nav-cta">Student Login →</a>
+  <div class="nav-right">
+    <!-- Cart button -->
+    <button class="nav-cart-btn" onclick="openCart()" id="navCartBtn" style="display:none">
+      🛒 Cart
+      <span class="cart-badge" id="navCartBadge">0</span>
+    </button>
+    <!-- Auth state — shown/hidden by JS -->
+    <div id="navLoggedOut" style="display:flex;align-items:center;gap:10px;">
+      <a href="https://course.nsicerts.org/login" class="nav-login">Student Login →</a>
+    </div>
+    <div id="navLoggedIn" style="display:none;align-items:center;gap:10px;">
+      <span class="nav-user">Hi, <span class="nav-user-name" id="navUserName">there</span></span>
+      <a href="https://course.nsicerts.org/dashboard" class="nav-dashboard">My Dashboard →</a>
+    </div>
+  </div>
 </nav>
 
 <!-- HERO -->
@@ -503,14 +366,11 @@ footer {
   <div class="hero-bg"></div>
   <div class="hero-grid"></div>
   <div class="hero-content">
-    <div class="hero-eyebrow">
-      <span class="hero-eyebrow-dot"></span>
-      Workplace Safety Certification
-    </div>
+    <div class="hero-eyebrow"><span class="hero-eyebrow-dot"></span>Workplace Safety Certification</div>
     <h1>GET<br>CERTIFIED.<br><span>STAY SAFE.</span></h1>
     <p>OSHA-compliant safety certifications online. Complete your course, pass the quiz, and download your certificate instantly. Valid in all 50 states and Canada.</p>
     <div class="hero-actions">
-      <a href="https://course.nsicerts.org/signup" class="btn-primary">Browse Courses →</a>
+      <a href="#courses" class="btn-primary">Browse Courses →</a>
       <a href="#verify" class="btn-secondary">🔍 Verify a Certificate</a>
     </div>
     <div class="hero-trust">
@@ -523,57 +383,49 @@ footer {
   <div class="hero-badges">
     <div class="std-badge badge-osha">
       <div class="std-badge-icon">OSHA</div>
-      <div class="std-badge-text">
-        <span class="std-badge-name">OSHA Compliant</span>
-        <span class="std-badge-desc">29 CFR 1926.453</span>
-      </div>
+      <div><span class="std-badge-name">OSHA Compliant</span><br><span class="std-badge-desc">29 CFR 1926.453</span></div>
     </div>
     <div class="std-badge badge-ansi">
       <div class="std-badge-icon">ANSI</div>
-      <div class="std-badge-text">
-        <span class="std-badge-name">ANSI Aligned</span>
-        <span class="std-badge-desc">A92.22 / A92.24</span>
-      </div>
+      <div><span class="std-badge-name">ANSI Aligned</span><br><span class="std-badge-desc">A92.22 / A92.24</span></div>
     </div>
     <div class="std-badge badge-csa">
       <div class="std-badge-icon">CSA</div>
-      <div class="std-badge-text">
-        <span class="std-badge-name">CSA Compliant</span>
-        <span class="std-badge-desc">B354.6</span>
-      </div>
+      <div><span class="std-badge-name">CSA Compliant</span><br><span class="std-badge-desc">B354.6</span></div>
     </div>
   </div>
 </section>
 
 <!-- STATS -->
 <div class="stats-bar">
-  <div class="stat-item">
-    <div class="stat-num">50+</div>
-    <div class="stat-label">US States Recognized</div>
-  </div>
-  <div class="stat-item">
-    <div class="stat-num">3YR</div>
-    <div class="stat-label">Certificate Validity</div>
-  </div>
-  <div class="stat-item">
-    <div class="stat-num">2HR</div>
-    <div class="stat-label">Average Completion</div>
-  </div>
-  <div class="stat-item">
-    <div class="stat-num">100%</div>
-    <div class="stat-label">Online — Any Device</div>
-  </div>
+  <div class="stat-item"><div class="stat-num">50+</div><div class="stat-label">US States Recognized</div></div>
+  <div class="stat-item"><div class="stat-num">3YR</div><div class="stat-label">Certificate Validity</div></div>
+  <div class="stat-item"><div class="stat-num">2HR</div><div class="stat-label">Average Completion</div></div>
+  <div class="stat-item"><div class="stat-num">100%</div><div class="stat-label">Online — Any Device</div></div>
 </div>
+
+<!-- HOW IT WORKS -->
+<section class="how-section" id="how">
+  <div class="section-label">Process</div>
+  <h2 class="section-title">How It Works</h2>
+  <p class="section-sub">From enrollment to certificate in under 2 hours. No classroom, no scheduling, no waiting.</p>
+  <div class="steps-grid">
+    <div class="step-card"><div class="step-num">01</div><div class="step-icon">📋</div><div class="step-title">Enroll &amp; Pay</div><div class="step-desc">Select your course and complete checkout. Instant access — no waiting.</div></div>
+    <div class="step-card"><div class="step-num">02</div><div class="step-icon">📖</div><div class="step-title">Complete Training</div><div class="step-desc">Work through modules at your own pace. Knowledge checks after each module.</div></div>
+    <div class="step-card"><div class="step-num">03</div><div class="step-icon">✏️</div><div class="step-title">Pass the Quiz</div><div class="step-desc">15-question final exam. Score 80% or higher. Unlimited retakes included.</div></div>
+    <div class="step-card"><div class="step-num">04</div><div class="step-icon">🏆</div><div class="step-title">Download Certificate</div><div class="step-desc">Instant PDF certificate with QR verification code. Valid for 3 years.</div></div>
+    <div class="step-card"><div class="step-num">05</div><div class="step-icon">🔧</div><div class="step-title">Practical Evaluation</div><div class="step-desc">Your employer completes the hands-on evaluation to finalize your certification.</div></div>
+  </div>
+</section>
 
 <!-- COURSES -->
 <section class="section" id="courses">
   <div class="section-label">Course Catalog</div>
   <h2 class="section-title">Safety Certifications</h2>
   <p class="section-sub">Every course built on official OSHA, ANSI, and CSA standards. Complete online at your own pace — certificate downloads instantly after you pass.</p>
-
   <div class="courses-grid">
 
-    <a href="https://course.nsicerts.org/signup" class="course-card featured">
+    <div class="course-card featured">
       <div class="course-badge badge-hot">⚡ Most Popular</div>
       <div class="course-icon">🏗️</div>
       <div class="course-title">MEWP Operator Certification</div>
@@ -588,15 +440,12 @@ footer {
         <span class="lang-tag active">🇲🇽 Español</span>
       </div>
       <div class="course-footer">
-        <div>
-          <div class="course-price">$39</div>
-          <div class="course-price-sub">instant certificate</div>
-        </div>
-        <span class="btn-enroll">Enroll Now</span>
+        <div><div class="course-price">$39</div><div class="course-price-sub">instant certificate</div></div>
+        <button class="btn-add-cart" onclick="addToCart('mewp', 'MEWP Operator Certification', 39, '🏗️')" id="btn-mewp">Add to Cart</button>
       </div>
-    </a>
+    </div>
 
-    <a href="https://course.nsicerts.org/signup" class="course-card">
+    <div class="course-card">
       <div class="course-badge badge-available">● Available</div>
       <div class="course-icon">🚜</div>
       <div class="course-title">Forklift Operator Certification</div>
@@ -611,15 +460,12 @@ footer {
         <span class="lang-tag active">🇲🇽 Español</span>
       </div>
       <div class="course-footer">
-        <div>
-          <div class="course-price">$39</div>
-          <div class="course-price-sub">instant certificate</div>
-        </div>
-        <span class="btn-enroll">Enroll Now</span>
+        <div><div class="course-price">$39</div><div class="course-price-sub">instant certificate</div></div>
+        <button class="btn-add-cart" onclick="addToCart('forklift', 'Forklift Operator Certification', 39, '🚜')" id="btn-forklift">Add to Cart</button>
       </div>
-    </a>
+    </div>
 
-    <a href="https://course.nsicerts.org/signup" class="course-card">
+    <div class="course-card">
       <div class="course-badge badge-available">● Available</div>
       <div class="course-icon">🦺</div>
       <div class="course-title">Fall Protection Training</div>
@@ -634,15 +480,12 @@ footer {
         <span class="lang-tag active">🇲🇽 Español</span>
       </div>
       <div class="course-footer">
-        <div>
-          <div class="course-price">$29</div>
-          <div class="course-price-sub">instant certificate</div>
-        </div>
-        <span class="btn-enroll">Enroll Now</span>
+        <div><div class="course-price">$29</div><div class="course-price-sub">instant certificate</div></div>
+        <button class="btn-add-cart" onclick="addToCart('fall', 'Fall Protection Training', 29, '🦺')" id="btn-fall">Add to Cart</button>
       </div>
-    </a>
+    </div>
 
-    <a href="https://course.nsicerts.org/signup" class="course-card">
+    <div class="course-card">
       <div class="course-badge badge-available">● Available</div>
       <div class="course-icon">⚗️</div>
       <div class="course-title">Hazard Communication (HazCom)</div>
@@ -657,15 +500,12 @@ footer {
         <span class="lang-tag active">🇲🇽 Español</span>
       </div>
       <div class="course-footer">
-        <div>
-          <div class="course-price">$19</div>
-          <div class="course-price-sub">instant certificate</div>
-        </div>
-        <span class="btn-enroll">Enroll Now</span>
+        <div><div class="course-price">$19</div><div class="course-price-sub">instant certificate</div></div>
+        <button class="btn-add-cart" onclick="addToCart('hazcom', 'Hazard Communication (HazCom)', 19, '⚗️')" id="btn-hazcom">Add to Cart</button>
       </div>
-    </a>
+    </div>
 
-    <a href="#" class="course-card">
+    <div class="course-card">
       <div class="course-badge badge-soon">◌ Coming Soon</div>
       <div class="course-icon">🔒</div>
       <div class="course-title">Lockout / Tagout (LOTO)</div>
@@ -675,20 +515,14 @@ footer {
         <div class="course-meta-item">📋 15 questions</div>
         <div class="course-meta-item">🔄 Annual cert</div>
       </div>
-      <div class="course-langs">
-        <span class="lang-tag">🇺🇸 English</span>
-        <span class="lang-tag">🇲🇽 Español</span>
-      </div>
+      <div class="course-langs"><span class="lang-tag">🇺🇸 English</span><span class="lang-tag">🇲🇽 Español</span></div>
       <div class="course-footer">
-        <div>
-          <div class="course-price">$29</div>
-          <div class="course-price-sub">coming soon</div>
-        </div>
+        <div><div class="course-price">$29</div><div class="course-price-sub">coming soon</div></div>
         <span class="btn-notify">Notify Me</span>
       </div>
-    </a>
+    </div>
 
-    <a href="#" class="course-card">
+    <div class="course-card">
       <div class="course-badge badge-soon">◌ Coming Soon</div>
       <div class="course-icon">🛢️</div>
       <div class="course-title">H2S / Hydrogen Sulfide Safety</div>
@@ -698,58 +532,13 @@ footer {
         <div class="course-meta-item">📋 15 questions</div>
         <div class="course-meta-item">🔄 Annual cert</div>
       </div>
-      <div class="course-langs">
-        <span class="lang-tag">🇺🇸 English</span>
-        <span class="lang-tag">🇲🇽 Español</span>
-      </div>
+      <div class="course-langs"><span class="lang-tag">🇺🇸 English</span><span class="lang-tag">🇲🇽 Español</span></div>
       <div class="course-footer">
-        <div>
-          <div class="course-price">$39</div>
-          <div class="course-price-sub">coming soon</div>
-        </div>
+        <div><div class="course-price">$39</div><div class="course-price-sub">coming soon</div></div>
         <span class="btn-notify">Notify Me</span>
       </div>
-    </a>
+    </div>
 
-  </div>
-</section>
-
-<!-- HOW IT WORKS -->
-<section class="how-section" id="how">
-  <div class="section-label">Process</div>
-  <h2 class="section-title">How It Works</h2>
-  <p class="section-sub">From enrollment to certificate in under 2 hours. No classroom, no scheduling, no waiting.</p>
-  <div class="steps-grid">
-    <div class="step-card">
-      <div class="step-num">01</div>
-      <div class="step-icon">📋</div>
-      <div class="step-title">Enroll &amp; Pay</div>
-      <div class="step-desc">Select your course and complete checkout. Instant access — no waiting for confirmation.</div>
-    </div>
-    <div class="step-card">
-      <div class="step-num">02</div>
-      <div class="step-icon">📖</div>
-      <div class="step-title">Complete Training</div>
-      <div class="step-desc">Work through 8 modules at your own pace. Video content, reading material, knowledge checks after each module.</div>
-    </div>
-    <div class="step-card">
-      <div class="step-num">03</div>
-      <div class="step-icon">✏️</div>
-      <div class="step-title">Pass the Quiz</div>
-      <div class="step-desc">15-question final exam. Score 80% or higher to pass. Unlimited retakes included — no extra charge.</div>
-    </div>
-    <div class="step-card">
-      <div class="step-num">04</div>
-      <div class="step-icon">🏆</div>
-      <div class="step-title">Download Certificate</div>
-      <div class="step-desc">Instant PDF certificate with your name, cert number, issue date, and 3-year expiry. Show your employer today.</div>
-    </div>
-    <div class="step-card">
-      <div class="step-num">05</div>
-      <div class="step-icon">🔧</div>
-      <div class="step-title">Practical Evaluation</div>
-      <div class="step-desc">Your employer completes the hands-on evaluation using our checklist. This finalizes your full certification.</div>
-    </div>
   </div>
 </section>
 
@@ -760,44 +549,20 @@ footer {
   <p class="section-sub">Every NSI course is developed in strict alignment with the regulatory standards your employer and worksite require.</p>
   <div class="compliance-grid">
     <div class="compliance-card">
-      <div class="compliance-header">
-        <div class="compliance-logo comp-osha">OSHA</div>
-        <div>
-          <div class="compliance-name">OSHA Compliant</div>
-          <div class="compliance-full">Occupational Safety and Health Administration</div>
-        </div>
-      </div>
-      <div class="compliance-desc">All courses are developed in alignment with OSHA's 29 CFR standards. Our MEWP course covers 1926.453; forklift covers 1910.178; fall protection covers 1926.502. Content sourced directly from official OSHA publications.</div>
+      <div class="compliance-header"><div class="compliance-logo comp-osha">OSHA</div><div><div class="compliance-name">OSHA Compliant</div><div class="compliance-full">Occupational Safety and Health Administration</div></div></div>
+      <div class="compliance-desc">All courses developed in alignment with OSHA's 29 CFR standards. MEWP covers 1926.453; forklift covers 1910.178; fall protection covers 1926.502.</div>
     </div>
     <div class="compliance-card">
-      <div class="compliance-header">
-        <div class="compliance-logo comp-ansi">ANSI</div>
-        <div>
-          <div class="compliance-name">ANSI Aligned</div>
-          <div class="compliance-full">American National Standards Institute</div>
-        </div>
-      </div>
-      <div class="compliance-desc">MEWP training meets ANSI A92.22 (Safe Use) and A92.24 (Training Requirements) standards — the most detailed MEWP operator training specifications available. Recognized by employers with the strictest qualification requirements.</div>
+      <div class="compliance-header"><div class="compliance-logo comp-ansi">ANSI</div><div><div class="compliance-name">ANSI Aligned</div><div class="compliance-full">American National Standards Institute</div></div></div>
+      <div class="compliance-desc">MEWP training meets ANSI A92.22 (Safe Use) and A92.24 (Training Requirements) — the most detailed MEWP operator training specifications available.</div>
     </div>
     <div class="compliance-card">
-      <div class="compliance-header">
-        <div class="compliance-logo comp-csa">CSA</div>
-        <div>
-          <div class="compliance-name">CSA Compliant</div>
-          <div class="compliance-full">Canadian Standards Association</div>
-        </div>
-      </div>
-      <div class="compliance-desc">Our MEWP certification meets CSA B354.6 — the Canadian standard for MEWP operator training. Valid in all Canadian provinces and territories, making our certificates recognized across North America.</div>
+      <div class="compliance-header"><div class="compliance-logo comp-csa">CSA</div><div><div class="compliance-name">CSA Compliant</div><div class="compliance-full">Canadian Standards Association</div></div></div>
+      <div class="compliance-desc">Our MEWP certification meets CSA B354.6 — the Canadian standard for MEWP operator training. Valid in all Canadian provinces and territories.</div>
     </div>
     <div class="compliance-card">
-      <div class="compliance-header">
-        <div class="compliance-logo comp-iso">ISO</div>
-        <div>
-          <div class="compliance-name">ISO Informed</div>
-          <div class="compliance-full">International Organization for Standardization</div>
-        </div>
-      </div>
-      <div class="compliance-desc">Course content references ISO 18878 international MEWP standards, making NSI certifications relevant for workers on international projects and companies with global safety compliance requirements.</div>
+      <div class="compliance-header"><div class="compliance-logo comp-iso">ISO</div><div><div class="compliance-name">ISO Informed</div><div class="compliance-full">International Organization for Standardization</div></div></div>
+      <div class="compliance-desc">Course content references ISO 18878 international MEWP standards for workers on international projects and global safety compliance requirements.</div>
     </div>
   </div>
 </section>
@@ -806,9 +571,9 @@ footer {
 <section class="pricing-section" id="pricing">
   <div class="section-label">Pricing</div>
   <h2 class="section-title">Simple, Transparent Pricing</h2>
-  <p class="section-sub">No subscriptions, no hidden fees. Pay per certificate or save with bulk pricing for your team.</p>
-  <div class="pricing-grid">
+  <p class="section-sub">No subscriptions, no hidden fees. Bulk discounts available for teams — contact us for a custom code.</p>
 
+  <div class="pricing-grid">
     <div class="pricing-card">
       <div class="pricing-tier">Individual</div>
       <div class="pricing-price"><span>$</span>39</div>
@@ -821,41 +586,70 @@ footer {
         <li><span class="check">✓</span> English or Spanish</li>
         <li><span class="check">✓</span> Valid 3 years</li>
       </ul>
-      <a href="https://course.nsicerts.org/signup" class="pricing-btn pricing-btn-secondary">Get Certified</a>
+      <button class="pricing-btn pricing-btn-secondary" onclick="document.getElementById('courses').scrollIntoView({behavior:'smooth'})">Browse Courses</button>
     </div>
 
     <div class="pricing-card featured">
       <div class="pricing-popular">BEST VALUE</div>
-      <div class="pricing-tier">Team 10-Pack</div>
-      <div class="pricing-price"><span>$</span>299</div>
-      <div class="pricing-per">10 certificates — save $91</div>
+      <div class="pricing-tier">Multi-Course</div>
+      <div class="pricing-price"><span>$</span>89</div>
+      <div class="pricing-per">any 3 courses — save $28</div>
       <ul class="pricing-features">
-        <li><span class="check">✓</span> 10 certificates, same course</li>
-        <li><span class="check">✓</span> Assign to employees</li>
-        <li><span class="check">✓</span> Track completions</li>
-        <li><span class="check">✓</span> Bulk PDF download</li>
-        <li><span class="check">✓</span> English + Spanish included</li>
-        <li><span class="check">✓</span> Email support</li>
+        <li><span class="check">✓</span> Choose any 3 courses</li>
+        <li><span class="check">✓</span> All course features included</li>
+        <li><span class="check">✓</span> Instant certificates for each</li>
+        <li><span class="check">✓</span> English + Spanish</li>
+        <li><span class="check">✓</span> 3-year validity per cert</li>
       </ul>
-      <a href="mailto:NSIcertsadmin@gmail.com" class="pricing-btn pricing-btn-primary">Order Team Pack</a>
+      <button class="pricing-btn pricing-btn-primary" onclick="document.getElementById('courses').scrollIntoView({behavior:'smooth'})">Add Courses to Cart</button>
     </div>
+  </div>
 
-    <div class="pricing-card">
-      <div class="pricing-tier">Corporate</div>
-      <div class="pricing-price"><span>$</span>499</div>
-      <div class="pricing-per">per year — unlimited employees</div>
-      <ul class="pricing-features">
-        <li><span class="check">✓</span> All courses included</li>
-        <li><span class="check">✓</span> Unlimited employees</li>
-        <li><span class="check">✓</span> Admin dashboard</li>
-        <li><span class="check">✓</span> Completion tracking</li>
-        <li><span class="check">✓</span> All languages</li>
-        <li><span class="check">✓</span> Priority support</li>
-        <li><span class="check">✓</span> Custom branding option</li>
-      </ul>
-      <a href="mailto:NSIcertsadmin@gmail.com" class="pricing-btn pricing-btn-secondary">Contact Us</a>
-    </div>
-
+  <!-- Bulk pricing table -->
+  <div style="margin-top:3rem;">
+    <h3 style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;margin-bottom:0.5rem;letter-spacing:1px;">Bulk / Team Pricing</h3>
+    <p style="color:var(--muted);font-size:0.9rem;margin-bottom:1.5rem;">Certify your whole team at a discount. Contact us for a promo code.</p>
+    <table class="bulk-table">
+      <thead>
+        <tr>
+          <th>Seats</th>
+          <th>Price Per Seat</th>
+          <th>You Save</th>
+          <th>Total</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>5 – 9</td>
+          <td><strong>$34</strong> / seat</td>
+          <td><span class="bulk-savings">13% off</span></td>
+          <td style="color:var(--gold);font-weight:700;">$170 – $306</td>
+          <td><a href="mailto:NSIcertsadmin@gmail.com?subject=Bulk Order 5-9 Seats" class="bulk-contact">Contact Us</a></td>
+        </tr>
+        <tr>
+          <td>10 – 24</td>
+          <td><strong>$29</strong> / seat</td>
+          <td><span class="bulk-savings">26% off</span></td>
+          <td style="color:var(--gold);font-weight:700;">$290 – $696</td>
+          <td><a href="mailto:NSIcertsadmin@gmail.com?subject=Bulk Order 10-24 Seats" class="bulk-contact">Contact Us</a></td>
+        </tr>
+        <tr>
+          <td>25 – 49</td>
+          <td><strong>$25</strong> / seat</td>
+          <td><span class="bulk-savings">36% off</span></td>
+          <td style="color:var(--gold);font-weight:700;">$625 – $1,225</td>
+          <td><a href="mailto:NSIcertsadmin@gmail.com?subject=Bulk Order 25-49 Seats" class="bulk-contact">Contact Us</a></td>
+        </tr>
+        <tr>
+          <td>50+</td>
+          <td><strong>$22</strong> / seat</td>
+          <td><span class="bulk-savings">44% off</span></td>
+          <td style="color:var(--gold);font-weight:700;">Custom quote</td>
+          <td><a href="mailto:NSIcertsadmin@gmail.com?subject=Bulk Order 50+ Seats" class="bulk-contact">Contact Us</a></td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 </section>
 
@@ -865,9 +659,9 @@ footer {
     <div>
       <div class="section-label">Verification</div>
       <div class="verify-title">Verify Any NSI Certificate</div>
-      <div class="verify-desc">Employers — confirm a worker's certification is valid and current. Enter the certificate number found on any NSI certificate, or scan the QR code.</div>
+      <div class="verify-desc">Employers — confirm a worker's certification is valid and current. Enter the certificate number or scan the QR code on any NSI certificate.</div>
       <div class="verify-input-row">
-        <input class="verify-input" type="text" placeholder="NSI-2026-123456" id="cert-input">
+        <input class="verify-input" type="text" placeholder="NSI2026123456" id="cert-input">
         <button class="btn-verify" onclick="verifyCert()">Verify →</button>
       </div>
       <div id="verify-result" style="margin-top:16px;"></div>
@@ -884,9 +678,7 @@ footer {
           <span class="cert-preview-badge cpb-csa">CSA</span>
         </div>
       </div>
-      <div class="verify-status">
-        <span>✓</span> Certificate Valid — Active
-      </div>
+      <div class="verify-status"><span>✓</span> Certificate Valid — Active</div>
     </div>
   </div>
 </section>
@@ -896,51 +688,24 @@ footer {
   <div class="section-label">FAQ</div>
   <h2 class="section-title">Common Questions</h2>
   <div class="faq-grid">
-    <div class="faq-item">
-      <div class="faq-q">Will my employer accept this certificate? <span>+</span></div>
-      <div class="faq-a">Yes. Our certificates meet the knowledge training requirements of OSHA, ANSI, and CSA standards. Your employer must also complete a practical (hands-on) evaluation — which is always performed by the employer regardless of which training provider you use.</div>
-    </div>
-    <div class="faq-item">
-      <div class="faq-q">Is this the same as an OSHA 10 or OSHA 30 card? <span>+</span></div>
-      <div class="faq-a">No. This is an equipment-specific operator certification (MEWP, forklift, etc.), not the OSHA Outreach 10-hour or 30-hour program. Both serve different purposes — this cert is specifically required for operating the equipment.</div>
-    </div>
-    <div class="faq-item">
-      <div class="faq-q">How long does it take to complete? <span>+</span></div>
-      <div class="faq-a">The MEWP and forklift courses take approximately 60–90 minutes. You can pause and resume at any time — your progress is saved automatically.</div>
-    </div>
-    <div class="faq-item">
-      <div class="faq-q">What if I fail the final quiz? <span>+</span></div>
-      <div class="faq-a">No problem. Unlimited retakes are included at no extra charge. You can review the course material and retake the quiz as many times as needed.</div>
-    </div>
-    <div class="faq-item">
-      <div class="faq-q">Is this available in Spanish? <span>+</span></div>
-      <div class="faq-a">Yes. All current courses are available in both English and Spanish. Additional languages including Portuguese, Polish, and Vietnamese are coming soon.</div>
-    </div>
-    <div class="faq-item">
-      <div class="faq-q">How long is the certification valid? <span>+</span></div>
-      <div class="faq-a">3 years from the date of completion. You'll receive an email reminder before your certification expires so you can renew without any lapse in compliance.</div>
-    </div>
-    <div class="faq-item">
-      <div class="faq-q">Can I get a certificate for my whole crew? <span>+</span></div>
-      <div class="faq-a">Yes — our 10-pack saves $91 vs individual pricing, and our Corporate plan ($499/year) covers unlimited employees across all courses. Contact us for bulk orders over 50 employees.</div>
-    </div>
-    <div class="faq-item">
-      <div class="faq-q">Is NSI a government agency? <span>+</span></div>
-      <div class="faq-a">No. National Safety Institute is a private safety training provider. Our courses are developed in alignment with official OSHA, ANSI, and CSA standards, but we are not affiliated with or endorsed by any government agency.</div>
-    </div>
+    <div class="faq-item"><div class="faq-q">Will my employer accept this certificate? <span>+</span></div><div class="faq-a">Yes. Our certificates meet the knowledge training requirements of OSHA, ANSI, and CSA standards. Your employer must also complete a practical (hands-on) evaluation — which is always performed by the employer regardless of which training provider you use.</div></div>
+    <div class="faq-item"><div class="faq-q">Is this the same as an OSHA 10 or OSHA 30 card? <span>+</span></div><div class="faq-a">No. This is an equipment-specific operator certification (MEWP, forklift, etc.), not the OSHA Outreach program. Both serve different purposes — this cert is specifically required for operating the equipment.</div></div>
+    <div class="faq-item"><div class="faq-q">How long does it take to complete? <span>+</span></div><div class="faq-a">The MEWP and forklift courses take approximately 60–90 minutes. You can pause and resume at any time — your progress is saved automatically.</div></div>
+    <div class="faq-item"><div class="faq-q">What if I fail the final quiz? <span>+</span></div><div class="faq-a">No problem. Unlimited retakes are included at no extra charge. You can review the course material and retake the quiz as many times as needed.</div></div>
+    <div class="faq-item"><div class="faq-q">Is this available in Spanish? <span>+</span></div><div class="faq-a">Yes. All current courses are available in both English and Spanish.</div></div>
+    <div class="faq-item"><div class="faq-q">How long is the certification valid? <span>+</span></div><div class="faq-a">3 years from the date of completion. You'll receive a reminder before your certification expires.</div></div>
+    <div class="faq-item"><div class="faq-q">Can I get a certificate for my whole crew? <span>+</span></div><div class="faq-a">Yes — we offer bulk pricing for teams of 5 or more. Contact us at NSIcertsadmin@gmail.com for a custom promo code with your discount applied.</div></div>
+    <div class="faq-item"><div class="faq-q">Is NSI a government agency? <span>+</span></div><div class="faq-a">No. National Safety Institute is a private safety training provider. Our courses are developed in alignment with official OSHA, ANSI, and CSA standards, but we are not affiliated with any government agency.</div></div>
   </div>
 </section>
 
 <!-- FOOTER -->
 <footer>
   <div class="footer-top">
-    <div class="footer-brand">
-      <div class="footer-logo">
+    <div class="footer-brand" style="display:flex;flex-direction:column;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
         <div class="nav-logo-badge">NSI</div>
-        <div class="nav-logo-text">
-          <span class="nav-logo-name">National Safety Institute</span>
-          <span class="nav-logo-url">nsicerts.org</span>
-        </div>
+        <div class="nav-logo-text"><span class="nav-logo-name">National Safety Institute</span><span class="nav-logo-url">nsicerts.org</span></div>
       </div>
       <div class="footer-desc">Professional workplace safety certification training. Built on OSHA, ANSI, and CSA standards. Valid across the United States and Canada.</div>
       <div class="footer-compliance">
@@ -963,7 +728,7 @@ footer {
       <a href="https://course.nsicerts.org/login">Student Login</a>
       <a href="https://course.nsicerts.org/signup">Create Account</a>
       <a href="#verify">Verify Certificate</a>
-      <a href="#pricing">Bulk &amp; Corporate</a>
+      <a href="#pricing">Bulk &amp; Team Pricing</a>
       <a href="mailto:NSIcertsadmin@gmail.com">Contact Us</a>
     </div>
     <div class="footer-col">
@@ -991,44 +756,181 @@ footer {
 </div>
 
 <script>
-function toggleLang() {
-  const flag = document.getElementById('lang-flag');
-  const text = document.getElementById('lang-text');
-  if (text.textContent === 'EN') {
-    flag.textContent = '🇲🇽';
-    text.textContent = 'ES';
+// ── SUPABASE AUTH CHECK ──
+const SUPABASE_URL = 'https://kprsqqoopuebapyxymqz.supabase.co'
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtwcnNxcW9vcHVlYmFweXh5bXF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1ODk0ODQsImV4cCI6MjA5MDE2NTQ4NH0.a4CIeTI4-8fvxWrDslK11bakr-W-cAAc4rtJyTtCJac'
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON)
+
+async function checkAuth() {
+  try {
+    // Get session from Supabase - works across subdomains via localStorage
+    const { data: { session } } = await sb.auth.getSession()
+    if (session?.user) {
+      const name = session.user.user_metadata?.full_name?.split(' ')[0] 
+                || session.user.email?.split('@')[0] 
+                || 'there'
+      document.getElementById('navUserName').textContent = name
+      document.getElementById('navLoggedOut').style.display = 'none'
+      document.getElementById('navLoggedIn').style.display = 'flex'
+    }
+  } catch(e) {
+    // Not logged in or error - show login button (already default)
+  }
+}
+checkAuth()
+
+// Also listen for auth changes
+sb.auth.onAuthStateChange((event, session) => {
+  if (session?.user) {
+    const name = session.user.user_metadata?.full_name?.split(' ')[0] 
+                || session.user.email?.split('@')[0] 
+                || 'there'
+    document.getElementById('navUserName').textContent = name
+    document.getElementById('navLoggedOut').style.display = 'none'
+    document.getElementById('navLoggedIn').style.display = 'flex'
   } else {
-    flag.textContent = '🇺🇸';
-    text.textContent = 'EN';
+    document.getElementById('navLoggedOut').style.display = 'flex'
+    document.getElementById('navLoggedIn').style.display = 'none'
+  }
+})
+
+// ── CART ──
+const COURSES = {
+  mewp:     { name: 'MEWP Operator Certification', price: 39, icon: '🏗️' },
+  forklift: { name: 'Forklift Operator Certification', price: 39, icon: '🚜' },
+  fall:     { name: 'Fall Protection Training', price: 29, icon: '🦺' },
+  hazcom:   { name: 'Hazard Communication (HazCom)', price: 19, icon: '⚗️' },
+}
+
+let cart = JSON.parse(sessionStorage.getItem('nsi_main_cart') || '[]')
+
+function saveCart() {
+  sessionStorage.setItem('nsi_main_cart', JSON.stringify(cart))
+  renderCart()
+}
+
+function addToCart(id, name, price, icon) {
+  if (cart.find(c => c.id === id)) {
+    openCart()
+    return
+  }
+  cart.push({ id, name, price, icon })
+  saveCart()
+  openCart()
+
+  // Update button
+  const btn = document.getElementById('btn-' + id)
+  if (btn) {
+    btn.textContent = '✓ In Cart'
+    btn.classList.add('in-cart')
+    btn.onclick = () => openCart()
   }
 }
 
+function removeFromCart(id) {
+  cart = cart.filter(c => c.id !== id)
+  saveCart()
+
+  // Reset button
+  const btn = document.getElementById('btn-' + id)
+  if (btn) {
+    const c = COURSES[id]
+    btn.textContent = 'Add to Cart'
+    btn.classList.remove('in-cart')
+    btn.onclick = () => addToCart(id, c.name, c.price, c.icon)
+  }
+}
+
+function renderCart() {
+  const itemsEl = document.getElementById('cartItems')
+  const footerEl = document.getElementById('cartFooter')
+  const badgeEl = document.getElementById('navCartBadge')
+  const navBtn = document.getElementById('navCartBtn')
+  const totalEl = document.getElementById('cartTotal')
+
+  const total = cart.reduce((s, c) => s + c.price, 0)
+  badgeEl.textContent = cart.length
+  navBtn.style.display = cart.length > 0 ? 'flex' : 'none'
+  totalEl.textContent = '$' + total
+
+  if (cart.length === 0) {
+    itemsEl.innerHTML = '<div class="cart-empty"><div class="cart-empty-icon">🛒</div><p style="color:var(--muted);font-size:0.9rem;">Your cart is empty.<br>Add a course to get started.</p></div>'
+    footerEl.style.display = 'none'
+  } else {
+    footerEl.style.display = 'block'
+    itemsEl.innerHTML = cart.map(c => `
+      <div class="cart-item">
+        <div class="cart-item-icon">${c.icon}</div>
+        <div class="cart-item-info">
+          <div class="cart-item-name">${c.name}</div>
+          <div class="cart-item-price">$${c.price}</div>
+        </div>
+        <button class="cart-item-remove" onclick="removeFromCart('${c.id}')">×</button>
+      </div>
+    `).join('')
+  }
+
+  // Restore button states
+  Object.keys(COURSES).forEach(id => {
+    const btn = document.getElementById('btn-' + id)
+    if (!btn) return
+    if (cart.find(c => c.id === id)) {
+      btn.textContent = '✓ In Cart'
+      btn.classList.add('in-cart')
+    } else {
+      const c = COURSES[id]
+      btn.textContent = 'Add to Cart'
+      btn.classList.remove('in-cart')
+    }
+  })
+}
+
+function openCart() {
+  document.getElementById('cartDrawer').classList.add('open')
+  document.getElementById('cartOverlay').classList.add('open')
+  document.body.style.overflow = 'hidden'
+}
+
+function closeCart() {
+  document.getElementById('cartDrawer').classList.remove('open')
+  document.getElementById('cartOverlay').classList.remove('open')
+  document.body.style.overflow = ''
+}
+
+function goToCheckout() {
+  // Pass cart to course app via sessionStorage key and redirect
+  const ids = cart.map(c => c.id)
+  sessionStorage.setItem('nsi_cart', JSON.stringify(ids))
+  window.location.href = 'https://course.nsicerts.org/cart'
+}
+
+// Init cart on load
+renderCart()
+
+// ── LANGUAGE ──
+function toggleLang() {
+  const flag = document.getElementById('lang-flag')
+  const text = document.getElementById('lang-text')
+  if (text.textContent === 'EN') { flag.textContent = '🇲🇽'; text.textContent = 'ES' }
+  else { flag.textContent = '🇺🇸'; text.textContent = 'EN' }
+}
+
+// ── VERIFY ──
 function verifyCert() {
-  const val = document.getElementById('cert-input').value.trim();
-  const result = document.getElementById('verify-result');
-  if (!val) {
-    result.innerHTML = '<div style="color:#8B96A8;font-size:13px;">Please enter a certificate number.</div>';
-    return;
-  }
-  // Redirect to real verification page
-  window.location.href = 'https://course.nsicerts.org/verify/' + encodeURIComponent(val);
+  const val = document.getElementById('cert-input').value.trim()
+  const result = document.getElementById('verify-result')
+  if (!val) { result.innerHTML = '<div style="color:#8B96A8;font-size:13px;">Please enter a certificate number.</div>'; return }
+  window.location.href = 'https://course.nsicerts.org/verify/' + encodeURIComponent(val)
 }
+document.getElementById('cert-input').addEventListener('keydown', e => { if (e.key === 'Enter') verifyCert() })
 
-// Allow Enter key in verify input
-document.getElementById('cert-input').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter') verifyCert();
-});
-
-// Smooth scroll for nav links
+// ── SMOOTH SCROLL ──
 document.querySelectorAll('a[href^="#"]').forEach(a => {
   a.addEventListener('click', e => {
-    const target = document.querySelector(a.getAttribute('href'));
-    if (target) {
-      e.preventDefault();
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  });
-});
+    const target = document.querySelector(a.getAttribute('href'))
+    if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth', block: 'start' }) }
+  })
+})
 </script>
 </body>
 </html>
